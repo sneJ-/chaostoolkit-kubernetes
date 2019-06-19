@@ -1,3 +1,5 @@
+from typing import Union
+
 from chaoslib.exceptions import ActivityFailed
 from chaoslib.types import Secrets
 from kubernetes import client, watch

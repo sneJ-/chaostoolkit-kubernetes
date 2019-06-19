@@ -2,6 +2,7 @@
 from typing import Union
 
 import urllib3
+from chaosk8s import _log_deprecated
 from chaoslib.exceptions import ActivityFailed
 from chaoslib.types import MicroservicesStatus, Secrets
 from kubernetes import client, watch
@@ -56,7 +57,7 @@ def microservice_available_and_healthy(
     !!!DEPRECATED!!!
     """
     _log_deprecated("microservice_available_and_healthy", "deployment_available_and_healthy")
-    deployment_available_and_healthy(name, ns, label_selector, secrets)
+    return deployment_available_and_healthy(name, ns, label_selector, secrets)
 
 
 def microservice_is_not_available(name: str, ns: str = "default",

@@ -108,7 +108,7 @@ def terminate_pods(label_selector: str = None, name_pattern: str = None,
 
 
 def _sort_by_pod_creation_timestamp(pod):
-    return pod.metadta.creation_timestamp
+    return pod.metadata.creation_timestamp
 
 
 def delete_pods(name: str, ns: str = "default",
