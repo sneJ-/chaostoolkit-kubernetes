@@ -81,7 +81,7 @@ def terminate_pods(label_selector: str = None, name_pattern: str = None,
     else:
         pods = ret.items
 
-    if order = "oldest":
+    if order == 'oldest':
         pods.sort(key=_sort_by_pod_creation_timestamp)
 
     if not all:
