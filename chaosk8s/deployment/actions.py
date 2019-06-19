@@ -10,7 +10,7 @@ from kubernetes.client.rest import ApiException
 
 from chaosk8s import create_k8s_api_client
 
-__all__ = ["create_deployment", "delete_deployment"]
+__all__ = ["create_deployment", "delete_deployment", "scale_deployment"]
 
 
 def create_deployment(spec_path: str, ns: str = "default", secrets: Secrets = None):
