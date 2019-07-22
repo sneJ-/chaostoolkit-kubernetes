@@ -21,7 +21,7 @@ __all__ = ["create_node", "delete_nodes", "cordon_node", "drain_nodes",
 
 def delete_nodes(label_selector: str = None, all: bool = False,
                  rand: bool = False, count: int = None,
-                 grace_period: int = -1, secrets: Secrets = None):
+                 grace_period_seconds: int = -1, secrets: Secrets = None):
     """
     Delete nodes gracefully. Select the appropriate nodes by label.
 
@@ -72,12 +72,12 @@ def delete_nodes(label_selector: str = None, all: bool = False,
             p=", ".join([n.metadata.name for n in nodes])))
 
     body = client.V1DeleteOptions()
-    if grace_period >= 0:
-        body = client.V1DeleteOptions(grace_period_seconds=grace_period)
+    if grace_period_seconds >= 0:
+        body = client.V1DeleteOptions(grace_period_seconds=grace_period_seconds)
     
     for n in nodes:
         res = v1.delete_node(
-            n.metadata.name, body)
+            n.metadata.name, body=body)
 
         if res.status != "Success":
             logger.debug("Terminating nodes failed: {}".format(res.message))
