@@ -72,9 +72,12 @@ def delete_nodes(label_selector: str = None, all: bool = False,
             p=", ".join([n.metadata.name for n in nodes])))
 
     body = client.V1DeleteOptions()
+    if grace_period >= 0:
+        body = client.V1DeleteOptions(grace_period_seconds=grace_period)
+    
     for n in nodes:
         res = v1.delete_node(
-            n.metadata.name, body, grace_period_seconds=grace_period_seconds)
+            n.metadata.name, body)
 
         if res.status != "Success":
             logger.debug("Terminating nodes failed: {}".format(res.message))
