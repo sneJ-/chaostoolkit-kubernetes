@@ -21,7 +21,7 @@ __all__ = ["create_node", "delete_nodes", "cordon_node", "drain_nodes",
 
 def delete_nodes(label_selector: str = None, all: bool = False,
                  rand: bool = False, count: int = None,
-                 grace_period_seconds: int = None, secrets: Secrets = None):
+                 grace_period: int = -1, secrets: Secrets = None):
     """
     Delete nodes gracefully. Select the appropriate nodes by label.
 
