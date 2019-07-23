@@ -222,7 +222,7 @@ def drain_nodes(name: str = None, label_selector: str = None,
     v1 = client.CoreV1Api(api)
 
     # select nodes to drain
-    nodes = _select_nodes(name=name, label_selector=label_selector
+    nodes = _select_nodes(name=name, label_selector=label_selector,
                           count=count, pod_label_selector=pod_label_selector,
                           pod_namespace=pod_namespace, secrets=secrets)
 
