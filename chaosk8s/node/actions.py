@@ -21,7 +21,8 @@ __all__ = ["create_node", "delete_nodes", "cordon_node", "drain_nodes",
 
 def delete_nodes(label_selector: str = None, all: bool = False,
                  rand: bool = False, count: int = None,
-                 grace_period_seconds: int = -1, secrets: Secrets = None):
+                 grace_period_seconds: int = -1, secrets: Secrets = None,
+                 pod_label_selector: str = None, pod_namespace: str = None):
     """
     Delete nodes gracefully. Select the appropriate nodes by label.
 
@@ -49,7 +50,18 @@ def delete_nodes(label_selector: str = None, all: bool = False,
         ret = v1.list_node()
         logger.debug("Found {d} nodes".format(d=len(ret.items)))
 
-    nodes = ret.items
+    if pod_label_selector and pod_namespace:
+        logger.debug("Filtering nodes by pod label %s" % (pod_label_selector,))
+        nodes = []
+        pods = v1.list_namespaced_pod(pod_namespace, label_selector=pod_label_selector)
+        for node in ret.items:
+            for pod in pods.items:
+                if pod.spec.node_name == node.metadata.name:
+                    nodes.append(node)
+                    pass
+    else:
+        nodes = ret.items
+
     if not nodes:
         raise ActivityFailed(
             "failed to find a node that matches selector {}".format(
@@ -74,7 +86,7 @@ def delete_nodes(label_selector: str = None, all: bool = False,
     body = client.V1DeleteOptions()
     if grace_period_seconds >= 0:
         body = client.V1DeleteOptions(grace_period_seconds=grace_period_seconds)
-    
+
     for n in nodes:
         res = v1.delete_node(
             n.metadata.name, body=body)
