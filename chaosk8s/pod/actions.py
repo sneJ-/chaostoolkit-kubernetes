@@ -104,3 +104,7 @@ def terminate_pods(label_selector: str = None, name_pattern: str = None,
 
     for p in pods:
         res = v1.delete_namespaced_pod(p.metadata.name, ns, body=body)
+
+
+def _sort_by_pod_creation_timestamp(pod):
+    return pod.metadata.creation_timestamp
