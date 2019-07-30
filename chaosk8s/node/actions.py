@@ -19,8 +19,9 @@ __all__ = ["create_node", "delete_nodes", "cordon_node", "drain_nodes",
            "uncordon_node"]
 
 
-def _select_nodes(name: str = None, label_selector: str = None, count: int = None,
-                  secrets: Secrets = None, pod_label_selector: str = None,
+def _select_nodes(name: str = None, label_selector: str = None,
+                  count: int = None, secrets: Secrets = None,
+                  pod_label_selector: str = None,
                   pod_namespace: str = None, first=False):
     """
     Selects nodes of the kubernetes cluster based on the input parameters and
