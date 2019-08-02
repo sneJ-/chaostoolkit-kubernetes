@@ -17,7 +17,7 @@ def kill_main_process(label_selector: str = None, name_pattern:
                       str = None, all: bool = False, rand:
                       bool = False, mode: str = "fixed", qty: int = 1,
                       ns: str = "default", order: str = "alphabetic",
-                      container: str = "*", signal: str = "SIGTERM",
+                      container_name: str = "*", signal: str = "SIGTERM",
                       pumba_image: str = "gaiaadm/pumba:master",
                       secrets: Secrets = None):
     """
@@ -32,9 +32,9 @@ def kill_main_process(label_selector: str = None, name_pattern:
     If `all` is set to `True`, all matching pods will terminate ther main
     containers processes.
 
-    If `container` is set to `*` all main processes in all containers of the
-    pod will be killed. Otherwise, only the containers that match the given
-    name in a pod.
+    If `containe_name` is set to `*` all main processes in all containers of
+    the pod will be killed. Otherwise, only the containers that match the
+    given name in a pod.
 
     The parameter `signal` defines which kill signal is sent to the pod's main
     container. By default a `SIGTERM` signal is sent.
@@ -81,17 +81,16 @@ def kill_main_process(label_selector: str = None, name_pattern:
         pumba_pod.metadata.labels = {
             "app": "pumba",
             "com.gaiaadm.pumba": "true",
-            "container": container,
+            "container": container_name,
             "pod": pod.metadata.name,
             "namespace": ns
         }
-        pumba_pod.node_name = pod.spec.node_name
         container = client.V1Container(name="pumba")
         container.image = pumba_image
         container.image_pull_policy = "Always"
         container.args = ["--log-level", "debug", "kill", "--signal", signal,
-                          "re2:^k8s_%s_%s_%s" % (container, pod.metadata.name,
-                                                 ns)]
+                          "re2:^k8s_%s_%s_%s" % (container_name,
+                                                 pod.metadata.name, ns)]
         resources = client.V1ResourceRequirements(
             requests={
                     "cpu": "10m",
@@ -102,11 +101,12 @@ def kill_main_process(label_selector: str = None, name_pattern:
                     "memory": "20M"
                 })
         container.resources = resources
-        volumeMount = client.V1VolumeMount(mount_path="/var/run/docker.sock",
-                                           name="dockersocket")
-        container.volumeMounts = [volumeMount]
+        volume_mount = client.V1VolumeMount(mount_path="/var/run/docker.sock",
+                                            name="dockersocket")
+        container.volume_mounts = [volume_mount]
         spec = client.V1PodSpec(containers=[container])
         spec.restart_policy = "Never"
+        spec.node_name = pod.spec.node_name
         host_path = client.V1HostPathVolumeSource(path="/var/run/docker.sock")
         volume = client.V1Volume(name="dockersocket", host_path=host_path)
         spec.volumes = [volume]
