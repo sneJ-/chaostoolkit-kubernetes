@@ -18,6 +18,7 @@ def kill_main_process(label_selector: str = None, name_pattern:
                       bool = False, mode: str = "fixed", qty: int = 1,
                       ns: str = "default", order: str = "alphabetic",
                       container: str = "*", signal: str = "SIGTERM",
+                      pumba_image: str = "gaiaadm/pumba:master",
                       secrets: Secrets = None):
     """
     Kill the main process in a pod's container. Select the appropriate pods
@@ -54,6 +55,9 @@ def kill_main_process(label_selector: str = None, name_pattern:
     If `rand` is set to `True`, n random pods will be chosen to kill their
     container's main processes. Otherwise, the first retrieved n pods
     be chosen to kill their container's main process.
+
+    With the parameter `pumba_image` one can change the image of pumba to
+    delete processes. It defaults to the current master of the project.
     """
 
     # determine the pods to kill
@@ -149,15 +153,15 @@ def terminate_pods(label_selector: str = None, name_pattern: str = None,
     Otherwise, the default pod's grace period will be used.
     """
 
-    logger.debug("Picked pods '{p}' to be terminated".format(
-        p=",".join([po.metadata.name for po in pods])))
-
     pods = _select_pods(label_selector=label_selector,
                         name_pattern=name_pattern,
                         all=all, rand=rand,
                         mode=mode, qty=qty,
                         ns=ns, order=order,
                         secrets=secrets)
+
+    logger.debug("Picked pods '{p}' to be terminated".format(
+        p=",".join([po.metadata.name for po in pods])))
 
     api = create_k8s_api_client(secrets)
 
