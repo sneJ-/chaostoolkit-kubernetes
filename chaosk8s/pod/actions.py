@@ -111,7 +111,6 @@ def kill_main_process(label_selector: str = None, name_pattern:
         volume = client.V1Volume(name="dockersocket", host_path=host_path)
         spec.volumes = [volume]
         pumba_pod.spec = spec
-        pumba_pod.volumes = volumes
         v1.create_namespaced_pod(ns, pumba_pod)
         i += 1
 
