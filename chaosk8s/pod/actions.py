@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import math
 import random
+import time
 import re
 
 from chaoslib.exceptions import ActivityFailed
@@ -19,7 +20,7 @@ def kill_main_process(label_selector: str = None, name_pattern:
                       ns: str = "default", order: str = "alphabetic",
                       container_name: str = "*", signal: str = "SIGTERM",
                       pumba_image: str = "gaiaadm/pumba:master",
-                      secrets: Secrets = None):
+                      wait_time: int = 35, secrets: Secrets = None):
     """
     Kill the main process in a pod's container. Select the appropriate pods
     by label and/or name patterns. Whenever a pattern is provided for the
@@ -58,6 +59,9 @@ def kill_main_process(label_selector: str = None, name_pattern:
 
     With the parameter `pumba_image` one can change the image of pumba to
     delete processes. It defaults to the current master of the project.
+
+    The parameter `wait_time` defines the amount of seconds (default `35`),
+    that is waited until the pumba pods are checked for correct execution.
     """
 
     # determine the pods to kill
@@ -75,9 +79,11 @@ def kill_main_process(label_selector: str = None, name_pattern:
     v1 = client.CoreV1Api(api)
 
     i = 0
+    timestamp = int(time.time())
     for pod in pods_to_kill:
         pumba_pod = client.V1Pod()
-        pumba_pod.metadata = client.V1ObjectMeta(name="pumba-pod-%d" % (i,))
+        pumba_pod.metadata = client.V1ObjectMeta(name="pumba-pod-%d-%d" %
+                                                 (timestamp, i))
         pumba_pod.metadata.labels = {
             "app": "pumba",
             "com.gaiaadm.pumba": "true",
@@ -113,6 +119,21 @@ def kill_main_process(label_selector: str = None, name_pattern:
         pumba_pod.spec = spec
         v1.create_namespaced_pod(ns, pumba_pod)
         i += 1
+
+    time.sleep(wait_time)
+
+    # check every created pumba pod for correct execution and in case of no
+    # error clean it up
+    for j in range(0, i):
+        pumba_pod = v1.read_namespaced_pod("pumba-pod-%d-%d" % (timestamp, j),
+                                           ns)
+        if pumba_pod.status.phase == "Succeeded":
+            v1.delete_namespaced_pod("pumba-pod-%d-%d" % (timestamp, j), ns)
+        else:
+            logger.error("wasn't able to kill main process in container %s in\
+                          pod %s" % (pumba_pod.metadata.labels['container'],
+                                     pumba_pod.metadata.labels['pod']))
+            return False
 
 
 def terminate_pods(label_selector: str = None, name_pattern: str = None,
